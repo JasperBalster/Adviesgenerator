@@ -1,122 +1,155 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <title>TIGRA Adviesgenerator</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 900px;
-      margin: 20px auto;
-      padding: 20px;
-      background: #f4f4f4;
-    }
-    textarea, input, select {
-      width: 100%;
-      margin-bottom: 15px;
-      padding: 10px;
-      font-size: 1rem;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 1rem;
-      background-color: #0077cc;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #005fa3;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TIGRA Advies Generator</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; }
+  label { display: block; margin-top: 15px; }
+  textarea, input, select { width: 100%; padding: 8px; margin-top: 5px; }
+  button { margin-top: 20px; padding: 10px 15px; font-size: 16px; }
+  #resultaat { margin-top: 20px; white-space: pre-wrap; background: #f0f0f0; padding: 15px; }
+</style>
 </head>
 <body>
-  <h1>TIGRA Adviesgenerator</h1>
 
-  <label>Naam getest persoon</label>
-  <input id="naam" type="text">
+<h1>TIGRA Advies Generator</h1>
 
-  <label>Type onderzoek</label>
-  <select id="type">
-    <option value="PMO">PMO</option>
-    <option value="Healthcheck">Healthcheck</option>
-    <option value="Sportkeuring">Sportkeuring</option>
-  </select>
+<form id="adviesForm">
+  <label>Naam getest persoon
+    <input type="text" id="naam" required />
+  </label>
 
-  <label>Naam bedrijf</label>
-  <input id="bedrijf" type="text">
+  <label>Type onderzoek
+    <select id="onderzoek" required>
+      <option value="PMO">PMO</option>
+      <option value="Healthcheck">Healthcheck</option>
+      <option value="Sportkeuring">Sportkeuring</option>
+    </select>
+  </label>
 
-  <label>Werkvermogen</label>
-  <select id="werkvermogen">
-    <option value="slecht">Slecht</option>
-    <option value="matig">Matig</option>
-    <option value="goed">Goed</option>
-  </select>
+  <label>Naam bedrijf
+    <input type="text" id="bedrijf" required />
+  </label>
 
-  <label>Feedback werkgerelateerd</label>
-  <textarea id="werkFeedback"></textarea>
+  <label>Werkvermogen
+    <select id="werkvermogen" required>
+      <option value="slecht">Slecht werkvermogen</option>
+      <option value="matig">Matig werkvermogen</option>
+      <option value="goed">Goed werkvermogen</option>
+    </select>
+  </label>
 
-  <label>Feedback leefstijl</label>
-  <textarea id="leefstijl"></textarea>
+  <label>Feedback werkgerelateerd
+    <textarea id="werkFeedback" rows="3"></textarea>
+  </label>
 
-  <label>Feedback biometrie</label>
-  <textarea id="biometrie"></textarea>
+  <label>Feedback leefstijl
+    <textarea id="leefstijlFeedback" rows="3"></textarea>
+  </label>
 
-  <label>Gezondheidsmetingen (bloeddruk, HRV, cholesterol, bloedsuiker)</label>
-  <textarea id="metingen"></textarea>
+  <label>Feedback biometrie
+    <textarea id="biometrieFeedback" rows="3"></textarea>
+  </label>
 
-  <label>Overige metingen (ogen, oren, longfunctie, fysieke metingen)</label>
-  <textarea id="overige"></textarea>
+  <label>Gezondheidsmetingen (bloeddruk, HRV, cholesterol, bloedsuiker)
+    <textarea id="gezondheidsmetingen" rows="3"></textarea>
+  </label>
 
-  <label>Extra opmerkingen van adviseur</label>
-  <textarea id="extra"></textarea>
+  <label>Overige metingen (ogen, oren, longfunctie, fysieke metingen)
+    <textarea id="overigeMetingen" rows="3"></textarea>
+  </label>
 
-  <label>Contactgegevens adviseur</label>
-  <textarea id="contact"></textarea>
+  <label>Extra opmerkingen adviseur
+    <textarea id="extraTekst" rows="3"></textarea>
+  </label>
 
-  <button onclick="generateAdvice()">Genereer advies</button>
+  <label>Contactgegevens adviseur
+    <textarea id="contactgegevens" rows="2"></textarea>
+  </label>
 
-  <h2>Gegenereerd Advies</h2>
-  <textarea id="output" rows="20"></textarea>
+  <button type="submit">Genereer Advies</button>
+</form>
 
-  <script>
-    async function generateAdvice() {
-      const naam = document.getElementById("naam").value;
-      const type = document.getElementById("type").value;
-      const bedrijf = document.getElementById("bedrijf").value;
-      const werkvermogen = document.getElementById("werkvermogen").value;
-      const werkFeedback = document.getElementById("werkFeedback").value;
-      const leefstijl = document.getElementById("leefstijl").value;
-      const biometrie = document.getElementById("biometrie").value;
-      const metingen = document.getElementById("metingen").value;
-      const overige = document.getElementById("overige").value;
-      const extra = document.getElementById("extra").value;
-      const contact = document.getElementById("contact").value;
+<div id="resultaat" style="display:none;"></div>
 
-      const prompt = `Beste ${naam},\n\nBedankt voor de deelname aan de ${type} via ${bedrijf}. Je scoort een ${werkvermogen} werkvermogen.\n\nWerkgerelateerd:\n${werkFeedback}\n\nLeefstijl:\n${leefstijl}\n\nBiometrie:\n${biometrie}\n\nGezondheidsmetingen:\n${metingen}\n\nOverige metingen (ogen, oren, longfunctie, fysieke metingen):\n${overige}\n\nExtra opmerkingen van de adviseur:\n${extra}\n\nWij wijzen erop dat het ${type} een momentopname is. Bij klachten over uw gezondheid of inzetbaarheid dient u met uw huisarts of bedrijfsarts contact op te nemen. Mocht u over de uitslagen nog vragen hebben, dan kunt u met ondergetekende contact opnemen.\n\nMet vriendelijke groet,\n${contact}`;
+<script>
+  const form = document.getElementById('adviesForm');
+  const resultaatDiv = document.getElementById('resultaat');
 
-      try {
-        const response = await fetch("https://api-inference.huggingface.co/models/tiiuae/falcon-7b-instruct", {
-          method: "POST",
-          headers: {
-            "Authorization": "Bearer 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",
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ inputs: prompt })
-        });
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    resultaatDiv.style.display = 'block';
+    resultaatDiv.textContent = "Advies wordt gegenereerd... even geduld.";
 
-        if (!response.ok) {
-          document.getElementById("output").value = "Fout bij het ophalen van advies: " + response.status;
-          return;
-        }
+    // Verzamel input waarden
+    const naam = document.getElementById('naam').value.trim();
+    const onderzoek = document.getElementById('onderzoek').value;
+    const bedrijf = document.getElementById('bedrijf').value.trim();
+    const werkvermogen = document.getElementById('werkvermogen').value;
+    const werkFeedback = document.getElementById('werkFeedback').value.trim();
+    const leefstijlFeedback = document.getElementById('leefstijlFeedback').value.trim();
+    const biometrieFeedback = document.getElementById('biometrieFeedback').value.trim();
+    const gezondheidsmetingen = document.getElementById('gezondheidsmetingen').value.trim();
+    const overigeMetingen = document.getElementById('overigeMetingen').value.trim();
+    const extraTekst = document.getElementById('extraTekst').value.trim();
+    const contactgegevens = document.getElementById('contactgegevens').value.trim();
 
-        const data = await response.json();
-        document.getElementById("output").value = data?.[0]?.generated_text || "Geen advies ontvangen.";
+    // Prompt opbouwen voor het model
+    const prompt = `
+Beste ${naam},
 
-      } catch (error) {
-        document.getElementById("output").value = "Er trad een fout op: " + error.message;
-      }
+Bedankt voor de deelname aan de ${onderzoek} via ${bedrijf}. Je scoort een ${werkvermogen} werkvermogen, dat betekent ${
+      werkvermogen === 'goed' ? 'dat je je werk goed kunt uitvoeren.' : 
+      werkvermogen === 'matig' ? 'dat er enige beperkingen zijn die je hinderen in het uitvoeren van je werk.' : 
+      'dat er aanzienlijke beperkingen zijn die je hinderen in het uitvoeren van je werk.'
     }
-  </script>
+
+Werkgerelateerd:
+${werkFeedback || 'Geen feedback opgegeven.'}
+
+Leefstijl:
+${leefstijlFeedback || 'Geen feedback opgegeven.'}
+
+Biometrie:
+${biometrieFeedback || 'Geen feedback opgegeven.'}
+
+Gezondheidsmetingen:
+${gezondheidsmetingen || 'Geen feedback opgegeven.'}
+
+Overige metingen:
+${overigeMetingen || 'Geen feedback opgegeven.'}
+
+Extra opmerkingen adviseur:
+${extraTekst || 'Geen opmerkingen toegevoegd.'}
+
+Wij wijzen erop dat het ${onderzoek} een momentopname is. Bij klachten over uw gezondheid of inzetbaarheid dient u met uw huisarts of bedrijfsarts contact op te nemen. Mocht u over de uitslagen nog vragen hebben, dan kunt u met ondergetekende contact opnemen.
+
+Met vriendelijke groet,
+${contactgegevens || '-'}
+`;
+
+    try {
+      const response = await fetch('https://hf.space/embed/JasperBalster/Adviesgenerator/api/predict/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: [prompt] })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API fout: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      // data.response is een array met het gegenereerde antwoord
+      resultaatDiv.textContent = data.data[0];
+    } catch (error) {
+      resultaatDiv.textContent = `Fout bij het ophalen van advies: ${error.message}`;
+    }
+  });
+</script>
+
 </body>
 </html>
+
