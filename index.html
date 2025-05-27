@@ -1,176 +1,139 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Advies Generator TIGRA</title>
-<style>
-  body { font-family: Arial, sans-serif; max-width: 700px; margin: 20px auto; }
-  label { display: block; margin-top: 15px; font-weight: bold; }
-  textarea, input, select { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; }
-  button { margin-top: 20px; padding: 10px 15px; font-size: 16px; cursor: pointer; }
-  #advies { margin-top: 25px; white-space: pre-wrap; background: #f0f0f0; padding: 15px; border-radius: 5px; min-height: 200px; }
-</style>
+  <meta charset="UTF-8" />
+  <title>Advies Generator met Hugging Face</title>
 </head>
 <body>
+  <h2>Advies Generator</h2>
 
-<h1>Advies Generator TIGRA</h1>
+  <!-- Input velden -->
+  Naam: <input type="text" id="naam" /><br/>
+  Onderzoekstype:
+  <select id="onderzoekstype">
+    <option>PMO</option>
+    <option>Healthcheck</option>
+    <option>Sportkeuring</option>
+  </select><br/>
+  Bedrijf: <input type="text" id="bedrijf" /><br/>
+  Werkvermogen:
+  <select id="werkvermogen">
+    <option>Slecht</option>
+    <option>Matig</option>
+    <option>Goed</option>
+  </select><br/>
+  Werkgerelateerd feedback:<br/>
+  <textarea id="werkfeedback" rows="3" cols="40"></textarea><br/>
+  Leefstijl feedback:<br/>
+  <textarea id="leefstijlfeedback" rows="3" cols="40"></textarea><br/>
+  Biometrie feedback:<br/>
+  <textarea id="biometrie" rows="3" cols="40"></textarea><br/>
+  Gezondheidsmetingen:<br/>
+  <textarea id="gezondheid" rows="3" cols="40"></textarea><br/>
+  Ogen en oren:<br/>
+  <textarea id="ogenoren" rows="3" cols="40"></textarea><br/>
+  Longfunctie:<br/>
+  <textarea id="longfunctie" rows="3" cols="40"></textarea><br/>
+  Fysieke metingen:<br/>
+  <textarea id="fysieke" rows="3" cols="40"></textarea><br/>
+  Extra advies:<br/>
+  <textarea id="extra" rows="3" cols="40"></textarea><br/>
+  Contactgegevens:<br/>
+  <textarea id="contact" rows="2" cols="40"></textarea><br/>
 
-<form id="adviesForm" onsubmit="event.preventDefault(); genereerAdvies();">
+  <button id="genereer">Genereer Advies</button>
 
-  <label for="naam">Naam getest persoon</label>
-  <input type="text" id="naam" required />
+  <h3>Advies Output:</h3>
+  <textarea id="output" rows="15" cols="80" readonly></textarea>
 
-  <label for="type">Type onderzoek</label>
-  <select id="type" required>
-    <option value="PMO">PMO</option>
-    <option value="Healthcheck">Healthcheck</option>
-    <option value="Sportkeuring">Sportkeuring</option>
-  </select>
+  <script>
+    const apiToken = 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;
 
-  <label for="bedrijf">Naam bedrijf</label>
-  <input type="text" id="bedrijf" required />
+    async function genereerAdvies() {
+      const naam = document.getElementById('naam').value;
+      const type = document.getElementById('onderzoekstype').value;
+      const bedrijf = document.getElementById('bedrijf').value;
+      const werkvermogen = document.getElementById('werkvermogen').value;
+      const werkfeedback = document.getElementById('werkfeedback').value;
+      const leefstijlfeedback = document.getElementById('leefstijlfeedback').value;
+      const biometrie = document.getElementById('biometrie').value;
+      const gezondheid = document.getElementById('gezondheid').value;
+      const ogenoren = document.getElementById('ogenoren').value;
+      const longfunctie = document.getElementById('longfunctie').value;
+      const fysieke = document.getElementById('fysieke').value;
+      const extra = document.getElementById('extra').value;
+      const contact = document.getElementById('contact').value;
 
-  <label for="werkvermogen">Werkvermogen</label>
-  <select id="werkvermogen" required>
-    <option value="slecht">Slecht werkvermogen</option>
-    <option value="matig">Matig werkvermogen</option>
-    <option value="goed">Goed werkvermogen</option>
-  </select>
-
-  <label for="werk">Feedback werkgerelateerd</label>
-  <textarea id="werk" rows="3"></textarea>
-
-  <label for="leefstijl">Feedback leefstijl</label>
-  <textarea id="leefstijl" rows="3"></textarea>
-
-  <label for="biometrie">Feedback biometrie</label>
-  <textarea id="biometrie" rows="3"></textarea>
-
-  <label for="metingen">Gezondheidsmetingen (bloeddruk, HRV, cholesterol, bloedsuiker)</label>
-  <textarea id="metingen" rows="3"></textarea>
-
-  <label for="ogenoren">Ogen en oren</label>
-  <textarea id="ogenoren" rows="2"></textarea>
-
-  <label for="longfunctie">Longfunctie</label>
-  <textarea id="longfunctie" rows="2"></textarea>
-
-  <label for="fysiek">Fysieke metingen (conditie, kracht, etc.)</label>
-  <textarea id="fysiek" rows="3"></textarea>
-
-  <label for="extra">Extra opmerkingen adviseur</label>
-  <textarea id="extra" rows="3"></textarea>
-
-  <label for="contact">Contactgegevens adviseur</label>
-  <textarea id="contact" rows="2" required></textarea>
-
-  <button type="submit">Genereer Advies</button>
-
-</form>
-
-<div id="advies" tabindex="0" aria-label="Gegenereerd advies">
-  <!-- Hier komt het advies te staan -->
-</div>
-
-<script>
-async function genereerAdvies() {
-  const naam = document.getElementById('naam').value.trim();
-  const type = document.getElementById('type').value;
-  const bedrijf = document.getElementById('bedrijf').value.trim();
-  const werkvermogen = document.getElementById('werkvermogen').value;
-  const werk = document.getElementById('werk').value.trim();
-  const leefstijl = document.getElementById('leefstijl').value.trim();
-  const biometrie = document.getElementById('biometrie').value.trim();
-  const metingen = document.getElementById('metingen').value.trim();
-  const ogenoren = document.getElementById('ogenoren').value.trim();
-  const longfunctie = document.getElementById('longfunctie').value.trim();
-  const fysiek = document.getElementById('fysiek').value.trim();
-  const extra = document.getElementById('extra').value.trim();
-  const contact = document.getElementById('contact').value.trim();
-
-  // Eenvoudige uitleg per werkvermogen
-  let uitlegWerkvermogen = "";
-  if (werkvermogen === "goed") {
-    uitlegWerkvermogen = "dat je je werk goed kunt uitvoeren zonder beperkingen.";
-  } else if (werkvermogen === "matig") {
-    uitlegWerkvermogen = "dat er enige beperkingen zijn die je kunnen hinderen bij het uitvoeren van je werk.";
-  } else {
-    uitlegWerkvermogen = "dat er aanzienlijke beperkingen zijn die je belemmeren bij het uitvoeren van je werk.";
-  }
-
-  const prompt = `
+      // Prompt samenstellen
+      const prompt = `
 Beste ${naam},
 
-Bedankt voor de deelname aan de ${type} via ${bedrijf}. Je scoort een ${werkvermogen} werkvermogen, wat betekent ${uitlegWerkvermogen}
-
-Hieronder volgt een toelichting per onderwerp:
+Bedankt voor de deelname aan de ${type} via ${bedrijf}. Je scoort een ${werkvermogen} werkvermogen, dat betekent dat ...
 
 Werkgerelateerd:
-${werk || "- geen opmerkingen -"}
+${werkfeedback}
 
 Leefstijl:
-${leefstijl || "- geen opmerkingen -"}
+${leefstijlfeedback}
 
 Biometrie:
-${biometrie || "- geen opmerkingen -"}
+${biometrie}
 
 Gezondheidsmetingen:
-${metingen || "- geen opmerkingen -"}
+${gezondheid}
 
 Ogen en oren:
-${ogenoren || "- geen opmerkingen -"}
+${ogenoren}
 
 Longfunctie:
-${longfunctie || "- geen opmerkingen -"}
+${longfunctie}
 
 Fysieke metingen:
-${fysiek || "- geen opmerkingen -"}
+${fysieke}
 
-Extra opmerkingen:
-${extra || "- geen opmerkingen -"}
+Extra advies:
+${extra}
 
 Wij wijzen erop dat het ${type} een momentopname is. Bij klachten over uw gezondheid of inzetbaarheid dient u met uw huisarts of bedrijfsarts contact op te nemen. Mocht u over de uitslagen nog vragen hebben, dan kunt u met ondergetekende contact opnemen.
 
-Met vriendelijke groet,  
+Met vriendelijke groet,
 ${contact}
-`;
+      `;
 
-  document.getElementById('advies').innerText = "Advies wordt geladen...";
+      // API call naar Hugging Face
+      const response = await fetch("https://api-inference.huggingface.co/models/gpt2", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${apiToken}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          inputs: prompt,
+          options: { wait_for_model: true }
+        })
+      });
 
-  try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer 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"
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: "Je bent een professionele adviseur die een vriendelijk en duidelijk advies schrijft aan een werknemer na een PMO/Healthcheck/Sportkeuring." },
-          { role: "user", content: prompt }
-        ],
-        temperature: 0.7,
-        max_tokens: 1000
-      })
-    });
+      if (!response.ok) {
+        document.getElementById('output').value = `Fout bij het ophalen van advies: ${response.status} ${response.statusText}`;
+        return;
+      }
 
-    if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+      const data = await response.json();
+
+      if(data.error) {
+        document.getElementById('output').value = `API fout: ${data.error}`;
+        return;
+      }
+
+      // Data is een array met tekstresultaten
+      const adviesTekst = data[0].generated_text || "Geen advies ontvangen.";
+      document.getElementById('output').value = adviesTekst;
     }
 
-    const data = await response.json();
-    const adviesTekst = data.choices[0].message.content;
-
-    document.getElementById('advies').innerText = adviesTekst;
-
-  } catch (error) {
-    document.getElementById('advies').innerText = `Fout bij het ophalen van advies: ${error.message}`;
-    console.error(error);
-  }
-}
-</script>
-
+    document.getElementById('genereer').addEventListener('click', () => {
+      document.getElementById('output').value = "Bezig met genereren...";
+      genereerAdvies();
+    });
+  </script>
 </body>
 </html>
