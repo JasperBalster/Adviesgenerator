@@ -6,151 +6,116 @@
   <style>
     body {
       font-family: Arial, sans-serif;
+      max-width: 900px;
+      margin: 20px auto;
       padding: 20px;
-      background: #f9f9f9;
+      background: #f4f4f4;
     }
-    label, select, textarea, input {
-      display: block;
-      margin-bottom: 10px;
+    textarea, input, select {
       width: 100%;
-      max-width: 600px;
+      margin-bottom: 15px;
+      padding: 10px;
+      font-size: 1rem;
     }
     button {
-      margin-top: 20px;
       padding: 10px 20px;
-      background: #007bff;
+      font-size: 1rem;
+      background-color: #0077cc;
       color: white;
       border: none;
       cursor: pointer;
     }
-    textarea#adviceOutput {
-      height: 300px;
-      margin-top: 30px;
+    button:hover {
+      background-color: #005fa3;
     }
   </style>
 </head>
 <body>
   <h1>TIGRA Adviesgenerator</h1>
 
-  <label>Naam getest persoon:</label>
+  <label>Naam getest persoon</label>
   <input id="naam" type="text">
 
-  <label>Type onderzoek:</label>
+  <label>Type onderzoek</label>
   <select id="type">
-    <option>PMO</option>
-    <option>Healthcheck</option>
-    <option>Sportkeuring</option>
+    <option value="PMO">PMO</option>
+    <option value="Healthcheck">Healthcheck</option>
+    <option value="Sportkeuring">Sportkeuring</option>
   </select>
 
-  <label>Naam bedrijf:</label>
+  <label>Naam bedrijf</label>
   <input id="bedrijf" type="text">
 
-  <label>Werkvermogen:</label>
+  <label>Werkvermogen</label>
   <select id="werkvermogen">
-    <option>Slecht</option>
-    <option>Matig</option>
-    <option>Goed</option>
+    <option value="slecht">Slecht</option>
+    <option value="matig">Matig</option>
+    <option value="goed">Goed</option>
   </select>
 
-  <label>Feedback werkgerelateerd:</label>
-  <textarea id="werkgerelateerd"></textarea>
+  <label>Feedback werkgerelateerd</label>
+  <textarea id="werkFeedback"></textarea>
 
-  <label>Feedback leefstijl:</label>
+  <label>Feedback leefstijl</label>
   <textarea id="leefstijl"></textarea>
 
-  <label>Feedback biometrie:</label>
+  <label>Feedback biometrie</label>
   <textarea id="biometrie"></textarea>
 
-  <label>Gezondheidsmetingen (bloeddruk, HRV, cholesterol, bloedsuiker):</label>
+  <label>Gezondheidsmetingen (bloeddruk, HRV, cholesterol, bloedsuiker)</label>
   <textarea id="metingen"></textarea>
 
-  <label>Overige metingen (ogen, oren, longfunctie, fysieke metingen):</label>
-  <textarea id="overigemetingen"></textarea>
+  <label>Overige metingen (ogen, oren, longfunctie, fysieke metingen)</label>
+  <textarea id="overige"></textarea>
 
-  <label>Persoonlijke toevoeging adviseur:</label>
-  <textarea id="persoonlijk"></textarea>
+  <label>Extra opmerkingen van adviseur</label>
+  <textarea id="extra"></textarea>
 
-  <label>Contactgegevens adviseur:</label>
+  <label>Contactgegevens adviseur</label>
   <textarea id="contact"></textarea>
 
-  <button onclick="genereerAdvies()">Genereer Advies</button>
+  <button onclick="generateAdvice()">Genereer advies</button>
 
-  <h2>Gegenereerd Advies:</h2>
-  <textarea id="adviceOutput" readonly></textarea>
+  <h2>Gegenereerd Advies</h2>
+  <textarea id="output" rows="20"></textarea>
 
   <script>
-    async function genereerAdvies() {
-      const data = {
-        naam: document.getElementById('naam').value,
-        type: document.getElementById('type').value,
-        bedrijf: document.getElementById('bedrijf').value,
-        werkvermogen: document.getElementById('werkvermogen').value,
-        werkgerelateerd: document.getElementById('werkgerelateerd').value,
-        leefstijl: document.getElementById('leefstijl').value,
-        biometrie: document.getElementById('biometrie').value,
-        metingen: document.getElementById('metingen').value,
-        overige: document.getElementById('overigemetingen').value,
-        persoonlijk: document.getElementById('persoonlijk').value,
-        contact: document.getElementById('contact').value
-      };
+    async function generateAdvice() {
+      const naam = document.getElementById("naam").value;
+      const type = document.getElementById("type").value;
+      const bedrijf = document.getElementById("bedrijf").value;
+      const werkvermogen = document.getElementById("werkvermogen").value;
+      const werkFeedback = document.getElementById("werkFeedback").value;
+      const leefstijl = document.getElementById("leefstijl").value;
+      const biometrie = document.getElementById("biometrie").value;
+      const metingen = document.getElementById("metingen").value;
+      const overige = document.getElementById("overige").value;
+      const extra = document.getElementById("extra").value;
+      const contact = document.getElementById("contact").value;
 
-      const prompt = `
-Maak een advies voor de volgende persoon op basis van een ${data.type} van het bedrijf ${data.bedrijf}.
+      const prompt = `Beste ${naam},\n\nBedankt voor de deelname aan de ${type} via ${bedrijf}. Je scoort een ${werkvermogen} werkvermogen.\n\nWerkgerelateerd:\n${werkFeedback}\n\nLeefstijl:\n${leefstijl}\n\nBiometrie:\n${biometrie}\n\nGezondheidsmetingen:\n${metingen}\n\nOverige metingen (ogen, oren, longfunctie, fysieke metingen):\n${overige}\n\nExtra opmerkingen van de adviseur:\n${extra}\n\nWij wijzen erop dat het ${type} een momentopname is. Bij klachten over uw gezondheid of inzetbaarheid dient u met uw huisarts of bedrijfsarts contact op te nemen. Mocht u over de uitslagen nog vragen hebben, dan kunt u met ondergetekende contact opnemen.\n\nMet vriendelijke groet,\n${contact}`;
 
-Beste ${data.naam},
+      try {
+        const response = await fetch("https://api-inference.huggingface.co/models/tiiuae/falcon-7b-instruct", {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer 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",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ inputs: prompt })
+        });
 
-Bedankt voor de deelname aan de ${data.type} via ${data.bedrijf}. Je scoort een ${data.werkvermogen.toLowerCase()} werkvermogen. Dat betekent: ${
-        data.werkvermogen === "Goed"
-          ? "je kunt je werk goed uitvoeren."
-          : data.werkvermogen === "Matig"
-          ? "dat er enkele aandachtspunten zijn voor je inzetbaarheid."
-          : "dat er beperkingen zijn die je hinderen in het uitvoeren van je werk."
+        if (!response.ok) {
+          document.getElementById("output").value = "Fout bij het ophalen van advies: " + response.status;
+          return;
+        }
+
+        const data = await response.json();
+        document.getElementById("output").value = data?.[0]?.generated_text || "Geen advies ontvangen.";
+
+      } catch (error) {
+        document.getElementById("output").value = "Er trad een fout op: " + error.message;
       }
-
-Werkgerelateerd:
-${data.werkgerelateerd}
-
-Leefstijl:
-${data.leefstijl}
-
-Biometrie:
-${data.biometrie}
-
-Gezondheidsmetingen:
-${data.metingen}
-
-Overige metingen:
-${data.overige}
-
-Persoonlijke toelichting:
-${data.persoonlijk}
-
-Wij wijzen erop dat het ${data.type} een momentopname is. Bij klachten over uw gezondheid of inzetbaarheid dient u met uw huisarts of bedrijfsarts contact op te nemen. Mocht u over de uitslagen nog vragen hebben, dan kunt u met ondergetekende contact opnemen.
-
-Met vriendelijke groet,
-
-${data.contact}
-`;
-
-      const response = await fetch("https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.1", {
-        method: "POST",
-        headers: {
-          "Authorization": "Bearer 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",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          inputs: prompt
-        })
-      });
-
-      if (!response.ok) {
-        document.getElementById('adviceOutput').value = "Fout bij het ophalen van advies: " + response.status;
-        return;
-      }
-
-      const result = await response.json();
-      const outputText = result[0]?.generated_text || "Geen advies gegenereerd.";
-      document.getElementById('adviceOutput').value = outputText.replace(prompt, '').trim();
     }
   </script>
 </body>
