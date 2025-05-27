@@ -3,18 +3,30 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>TIGRA Advies Generator</title>
+<title>Adviesgenerator TIGRA</title>
 <style>
-  body { font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; }
-  label { display: block; margin-top: 15px; }
-  textarea, input, select { width: 100%; padding: 8px; margin-top: 5px; }
-  button { margin-top: 20px; padding: 10px 15px; font-size: 16px; }
-  #resultaat { margin-top: 20px; white-space: pre-wrap; background: #f0f0f0; padding: 15px; }
+  body { font-family: Arial, sans-serif; max-width: 700px; margin: 2rem auto; padding: 0 1rem; }
+  label { display: block; margin-top: 1rem; font-weight: bold; }
+  input[type="text"], select, textarea {
+    width: 100%; padding: 8px; margin-top: 0.3rem; box-sizing: border-box; font-size: 1rem;
+  }
+  textarea { height: 80px; resize: vertical; }
+  button {
+    margin-top: 1.5rem; padding: 12px 20px; font-size: 1rem;
+    background-color: #0052cc; color: white; border: none; cursor: pointer;
+  }
+  button:disabled {
+    background-color: #999;
+    cursor: not-allowed;
+  }
+  #output {
+    margin-top: 2rem; white-space: pre-wrap; background: #f4f4f4; padding: 1rem; border-radius: 5px; min-height: 150px;
+    font-family: 'Courier New', Courier, monospace;
+  }
 </style>
 </head>
 <body>
-
-<h1>TIGRA Advies Generator</h1>
+<h1>Adviesgenerator TIGRA</h1>
 
 <form id="adviesForm">
   <label>Naam getest persoon
@@ -22,7 +34,8 @@
   </label>
 
   <label>Type onderzoek
-    <select id="onderzoek" required>
+    <select id="typeOnderzoek" required>
+      <option value="">-- Kies --</option>
       <option value="PMO">PMO</option>
       <option value="Healthcheck">Healthcheck</option>
       <option value="Sportkeuring">Sportkeuring</option>
@@ -35,6 +48,7 @@
 
   <label>Werkvermogen
     <select id="werkvermogen" required>
+      <option value="">-- Kies --</option>
       <option value="slecht">Slecht werkvermogen</option>
       <option value="matig">Matig werkvermogen</option>
       <option value="goed">Goed werkvermogen</option>
@@ -42,114 +56,129 @@
   </label>
 
   <label>Feedback werkgerelateerd
-    <textarea id="werkFeedback" rows="3"></textarea>
+    <textarea id="feedbackWerkgerelateerd"></textarea>
   </label>
 
   <label>Feedback leefstijl
-    <textarea id="leefstijlFeedback" rows="3"></textarea>
+    <textarea id="feedbackLeefstijl"></textarea>
   </label>
 
   <label>Feedback biometrie
-    <textarea id="biometrieFeedback" rows="3"></textarea>
+    <textarea id="feedbackBiometrie"></textarea>
   </label>
 
-  <label>Gezondheidsmetingen (bloeddruk, HRV, cholesterol, bloedsuiker)
-    <textarea id="gezondheidsmetingen" rows="3"></textarea>
+  <label>Gezondheidsmetingen (bloeddruk, hrv, cholesterol, bloedsuiker)
+    <textarea id="gezondheidsmetingen"></textarea>
   </label>
 
   <label>Overige metingen (ogen, oren, longfunctie, fysieke metingen)
-    <textarea id="overigeMetingen" rows="3"></textarea>
+    <textarea id="overigeMetingen"></textarea>
   </label>
 
-  <label>Extra opmerkingen adviseur
-    <textarea id="extraTekst" rows="3"></textarea>
+  <label>Adviseur opmerking
+    <textarea id="adviseurOpmerking"></textarea>
   </label>
 
   <label>Contactgegevens adviseur
-    <textarea id="contactgegevens" rows="2"></textarea>
+    <textarea id="contactgegevens"></textarea>
   </label>
 
-  <button type="submit">Genereer Advies</button>
+  <button type="submit" id="genereerBtn">Genereer advies</button>
 </form>
 
-<div id="resultaat" style="display:none;"></div>
+<div id="output" placeholder="Hier verschijnt het advies..."></div>
 
 <script>
-  const form = document.getElementById('adviesForm');
-  const resultaatDiv = document.getElementById('resultaat');
+  const apiKey = "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";
 
-  form.addEventListener('submit', async (e) => {
+  document.getElementById("adviesForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-    resultaatDiv.style.display = 'block';
-    resultaatDiv.textContent = "Advies wordt gegenereerd... even geduld.";
+    const btn = document.getElementById("genereerBtn");
+    btn.disabled = true;
+    btn.textContent = "Advies genereren...";
 
-    // Verzamel input waarden
-    const naam = document.getElementById('naam').value.trim();
-    const onderzoek = document.getElementById('onderzoek').value;
-    const bedrijf = document.getElementById('bedrijf').value.trim();
-    const werkvermogen = document.getElementById('werkvermogen').value;
-    const werkFeedback = document.getElementById('werkFeedback').value.trim();
-    const leefstijlFeedback = document.getElementById('leefstijlFeedback').value.trim();
-    const biometrieFeedback = document.getElementById('biometrieFeedback').value.trim();
-    const gezondheidsmetingen = document.getElementById('gezondheidsmetingen').value.trim();
-    const overigeMetingen = document.getElementById('overigeMetingen').value.trim();
-    const extraTekst = document.getElementById('extraTekst').value.trim();
-    const contactgegevens = document.getElementById('contactgegevens').value.trim();
+    const naam = document.getElementById("naam").value.trim();
+    const typeOnderzoek = document.getElementById("typeOnderzoek").value;
+    const bedrijf = document.getElementById("bedrijf").value.trim();
+    const werkvermogen = document.getElementById("werkvermogen").value;
+    const feedbackWerkgerelateerd = document.getElementById("feedbackWerkgerelateerd").value.trim();
+    const feedbackLeefstijl = document.getElementById("feedbackLeefstijl").value.trim();
+    const feedbackBiometrie = document.getElementById("feedbackBiometrie").value.trim();
+    const gezondheidsmetingen = document.getElementById("gezondheidsmetingen").value.trim();
+    const overigeMetingen = document.getElementById("overigeMetingen").value.trim();
+    const adviseurOpmerking = document.getElementById("adviseurOpmerking").value.trim();
+    const contactgegevens = document.getElementById("contactgegevens").value.trim();
 
-    // Prompt opbouwen voor het model
+    // Kort uitleggen werkvermogen
+    let uitlegWerkvermogen = "";
+    if (werkvermogen === "goed") uitlegWerkvermogen = "Dat je je werk goed kunt uitvoeren.";
+    else if (werkvermogen === "matig") uitlegWerkvermogen = "Dat er enige beperkingen zijn die je kunnen hinderen in het uitvoeren van je werk.";
+    else if (werkvermogen === "slecht") uitlegWerkvermogen = "Dat er duidelijke beperkingen zijn die je hinderen in het uitvoeren van je werk.";
+
+    // Bouw de prompt
     const prompt = `
-Beste ${naam},
+Schrijf een nette, professionele adviesbrief gebaseerd op de volgende gegevens:
 
-Bedankt voor de deelname aan de ${onderzoek} via ${bedrijf}. Je scoort een ${werkvermogen} werkvermogen, dat betekent ${
-      werkvermogen === 'goed' ? 'dat je je werk goed kunt uitvoeren.' : 
-      werkvermogen === 'matig' ? 'dat er enige beperkingen zijn die je hinderen in het uitvoeren van je werk.' : 
-      'dat er aanzienlijke beperkingen zijn die je hinderen in het uitvoeren van je werk.'
-    }
+Naam getest persoon: ${naam}
+Type onderzoek: ${typeOnderzoek}
+Bedrijf: ${bedrijf}
+Werkvermogen: ${werkvermogen} (${uitlegWerkvermogen})
 
-Werkgerelateerd:
-${werkFeedback || 'Geen feedback opgegeven.'}
+Feedback werkgerelateerd:
+${feedbackWerkgerelateerd}
 
-Leefstijl:
-${leefstijlFeedback || 'Geen feedback opgegeven.'}
+Feedback leefstijl:
+${feedbackLeefstijl}
 
-Biometrie:
-${biometrieFeedback || 'Geen feedback opgegeven.'}
+Feedback biometrie:
+${feedbackBiometrie}
 
 Gezondheidsmetingen:
-${gezondheidsmetingen || 'Geen feedback opgegeven.'}
+${gezondheidsmetingen}
 
 Overige metingen:
-${overigeMetingen || 'Geen feedback opgegeven.'}
+${overigeMetingen}
 
-Extra opmerkingen adviseur:
-${extraTekst || 'Geen opmerkingen toegevoegd.'}
+Adviseur opmerking:
+${adviseurOpmerking}
 
-Wij wijzen erop dat het ${onderzoek} een momentopname is. Bij klachten over uw gezondheid of inzetbaarheid dient u met uw huisarts of bedrijfsarts contact op te nemen. Mocht u over de uitslagen nog vragen hebben, dan kunt u met ondergetekende contact opnemen.
+Sluit af met de volgende tekst:
+
+"Wij wijzen erop dat het PMO een momentopname is. Bij klachten over uw gezondheid of inzetbaarheid dient u met uw huisarts of bedrijfsarts contact op te nemen. Mocht u over de uitslagen nog vragen hebben, dan kunt u met ondergetekende contact opnemen.
 
 Met vriendelijke groet,
-${contactgegevens || '-'}
-`;
+${contactgegevens}
+    `;
 
     try {
-      const response = await fetch('https://hf.space/embed/JasperBalster/Adviesgenerator/api/predict/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data: [prompt] })
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + apiKey
+        },
+        body: JSON.stringify({
+          model: "gpt-3.5-turbo",
+          messages: [{ role: "user", content: prompt }],
+          max_tokens: 700,
+          temperature: 0.7
+        })
       });
 
       if (!response.ok) {
-        throw new Error(`API fout: ${response.status} ${response.statusText}`);
+        throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
-      // data.response is een array met het gegenereerde antwoord
-      resultaatDiv.textContent = data.data[0];
+      const advies = data.choices[0].message.content.trim();
+      document.getElementById("output").textContent = advies;
     } catch (error) {
-      resultaatDiv.textContent = `Fout bij het ophalen van advies: ${error.message}`;
+      document.getElementById("output").textContent = "Fout bij het ophalen van advies: " + error.message;
     }
+
+    btn.disabled = false;
+    btn.textContent = "Genereer advies";
   });
 </script>
-
 </body>
 </html>
-
